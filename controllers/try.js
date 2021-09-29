@@ -11,7 +11,6 @@ actorsId = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            "rejectUnauthorized": false
         };
         try {
             let result = await request(options);
@@ -25,9 +24,10 @@ actorsId = async (req, res) => {
 }
 
 actorsMovies = async (req, res) => {
-    let idArray = await actorsId();
+    let actorsIdArray = await actorsId();
+
     let i = 0;
-    let moviesArray = idArray.map(async actorId => {
+    let moviesArray = actorsIdArray.map(async actorId => {
        let actorName = poeple[i ++]
         const uri = `https://api.themoviedb.org/3/person/${actorId}/movie_credits?api_key=7b1152a1222f2893d32b8d84ae5d9abc&language=en-US`;
         const options = {
@@ -36,59 +36,86 @@ actorsMovies = async (req, res) => {
             headers: {
                 'Content-Type': 'application/json'
             },
-            "rejectUnauthorized": false
         };
         try {
             let result = await request(options);
             result = await JSON.parse(result)
-            let title = result.cast.map(movie => {
+            let movieId = result.cast.map(movie => {
                 return movie.id
             })
-            return await [{ Name: actorName, Moovies: title }]
+            // return await [{ Name: actorName, Moovies: title }]
+            return await [{ Name: actorName, Moovies: movieId }]
         } catch (err) {
             console.error(err);
         }
     })
-    let moviesRes = await Promise.all(moviesArray)
-    res.send(moviesRes)
-    // return Promise.all(moviesArray) //על כל הרשימה  map בשביל לחכות לסיים את ה 
+    return Promise.all(moviesArray); //על כל הרשימה  map בשביל לחכות לסיים את ה 
+    // let moviesRes = await Promise.all(moviesArray)
+    // res.send(moviesRes)
 }
 
 mervalMovies = async (req, res) => {
-    let movArray = await actorsMovies();
+    let moviesArray = await actorsMovies();
+
     // let i = 0;
-    // let y = 0
-let mervalsArray = movArray.map(async movie_id => {
+    let mervalsArray = moviesArray.map(async movie_id => {
     //    let actorName = poeple[i ++]
-    //    let oneMoveArray = movArray[y ++]
-        const uri = `https://api.themoviedb.org/3/movie/${movie_id}?api_key=7b1152a1222f2893d32b8d84ae5d9abc&language=en-US&append_to_response=credits`;
+        const uri = `https://api.themoviedb.org/3/movie/${movie_id}?api_key=7b1152a1222f2893d32b8d84ae5d9abc&language=en-US`;
         const options = {
             method: "GET",
             url: uri,
             headers: {
                 'Content-Type': 'application/json'
             },
-            "rejectUnauthorized": false
         };
         try {
             let result = await request(options);
             result = await JSON.parse(result)
-            if( result.homepage.includes("https://www.marvel.com/movies") ){
-            console.log("kkk", result.homepage)
-            return await result.homepage
-        }
+            if( result.homepage === "https://www.marvel.com/movies")
+            return await [{ Name: actorName, Moovies: result.title }]
         } catch (err) {
             console.error(err);
         }
     })
-    // return Promise.all(mervalsArray); //על כל הרשימה  map בשביל לחכות לסיים את ה 
-    let mervalsArrayHome = await Promise.all(mervalsArray)
-    res.send(mervalsArrayHome)
+    return Promise.all(moviesArray); //על כל הרשימה  map בשביל לחכות לסיים את ה 
+    // let moviesRes = await Promise.all(moviesArray)
+    // res.send(moviesRes)
+}
+
+
+
+bonus = async (req, res) => {
+    let actorsIdArray = await actorsId();
+
+    let i = 0;
+    let moviesArray = actorsIdArray.map(async actorId => {
+       let actorName = poeple[i ++]
+        const uri = `https://api.themoviedb.org/3/person/${actorId}/movie_credits?api_key=7b1152a1222f2893d32b8d84ae5d9abc&language=en-US`;
+        const options = {
+            method: "GET",
+            url: uri,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+        };
+        try {
+            let result = await request(options);
+            result = await JSON.parse(result)
+            let characters = result.cast.map(movie => {
+                return movie.character
+            })
+            return await [{ Name: actorName, character: characters }]
+        } catch (err) {
+            console.error(err);
+        }
+    })
+    let moviesRes = await Promise.all(moviesArray)
+    res.send(moviesRes)
 }
 
 
 module.exports = {
     actorsMovies,
-    actorsId,
-    mervalMovies
+    mervalMovies,
+    bonus
 }
