@@ -19,34 +19,31 @@ mooviesArray = async (req, res) => {
         try {
             let result = await request(options);
             result = await JSON.parse(result)
-            let array = []
-            result.results.forEach(element => {
+            let moviesId = []
+            result.results.forEach(async element => {
                 if (element.known_for_department === "Acting") {
-                    let movies_id = element.known_for.map(media => {
-                        array.push(media.id)
-                        return media.id
+                   await element.known_for.forEach(async media => {
+                        moviesId.push(media.id)
                     });
                 }
             })
-            return await { Name: name, Moovies: array }
+            console.log("jjj", moviesId)
+            return await { Name: name, Moovies: moviesId }
         } catch (err) {
             console.error(err);
         }
     })
-    let moviesRes = await Promise.all(moviesIdArray)
-    // res.send(moviesRes)
-    return moviesRes
+    return Promise.all(moviesIdArray)
 }
 
-
-
-
 mervalMovies = async (req, res) => {
-    let movArray = await mooviesArray();
-    console.log(movArray, "popo")
-    // let mervalsArray = [] 
-    let mervalsArray = movArray.forEach(async actorsMoovies => {
-        actorsMoovies.Moovies.map(async  movie_id => {
+    let moviesIdArray = await mooviesArray()
+    console.log("ppppp", moviesIdArray)
+    let i = 0;
+    // let mervalArray = [];
+   let mervalArray = moviesIdArray.map(async element => {
+        let name = people[i++]
+element.Moovies.map(async movie_id => { 
         const uri = `https://api.themoviedb.org/3/movie/${movie_id}?api_key=7b1152a1222f2893d32b8d84ae5d9abc&language=en-US&append_to_response=credits`;
         const options = {
             method: "GET",
@@ -56,25 +53,26 @@ mervalMovies = async (req, res) => {
             },
             "rejectUnauthorized": false
         };
+        console.log(movie_id, "movie_id")
         try {
             let result = await request(options);
             result = await JSON.parse(result)
-            console.log("result", result)
-            if (result.homepage.includes("https://www.marvel.com/movies")) {
-                console.log("kkk", result.homepage)
-                if ()
-                return await { Name: actorName, Moovies: result.title }
+            let mooviesTitle = [];
+            if(result.homepage.includes("www.marvel.com/movies")){
+                console.log("lml")
+               await mooviesTitle.push(result.title)
             }
+            console.log("xxx", mooviesTitle)
+            return await { Name: name, Moovies: mooviesTitle }
         } catch (err) {
             // console.error(err);
         }
-    })
-    // let mervalsArrayHome = await Promise.all(mervalsArray)
-    // res.send(mervalsArrayHome)
-})
-let mervalsArrayHome = await Promise.all(mervalsArray)
-    res.send(mervalsArrayHome)
+    })})
+    let mervalActorArray = await Promise.all(mervalArray)
+    console.log("mmmm", mervalActorArray)
+    res.send(mervalActorArray)
 }
+
 
 
 module.exports = {
